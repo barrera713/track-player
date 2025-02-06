@@ -1,15 +1,4 @@
 # track-player
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.22. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+### What is does? 🤔
+Gets current track playing on Spotify || last played track 😎
