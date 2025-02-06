@@ -1,4 +1,4 @@
 # track-player
 
-### What is does? 🤔
+### What it does? 🤔
 Gets current track playing on Spotify || last played track 😎
