@@ -1,12 +1,15 @@
 import { createLogger, format, transports } from 'winston';
 import { SpotifyCaller } from './spotify/SpotifyCaller';
+import { InMemoryStorage } from './storage/InMemoryStorage';
 
 const logger = createLogger({
   level: 'info',
   format: format.json(),
   transports: [new transports.Console()],
 });
-const spotifyCaller = new SpotifyCaller();
+
+const memoryCache = new InMemoryStorage();
+const spotifyCaller = new SpotifyCaller(memoryCache);
 
 const server = Bun.serve({
   port: 3000,

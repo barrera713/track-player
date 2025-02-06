@@ -1,7 +1,6 @@
 export interface SpotifyAccessToken {
-  accessToken: string;
-  scope: string;
-  expiresIn: number;
+  access_token: string;
+  expires_in: number;
 }
 
 export interface ArtistInfo {

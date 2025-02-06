@@ -1,16 +1,19 @@
-import type { ArtistInfo, TrackItemResponse } from './interfaces';
+import type { IStorer } from '../storage/interfaces';
+import type { ArtistInfo, SpotifyAccessToken, TrackItemResponse } from './interfaces';
+
+const ACCESS_TOKEN = 'spotify-access-token';
 
 export class SpotifyCaller {
   private clientId: string;
   private clientSecret: string;
   private refreshToken: string;
-  private accessToken: string;
+  private memoryStorage: IStorer;
 
-  constructor() {
-    this.clientId = process.env.CLIENT_ID || '';
-    this.clientSecret = process.env.CLIENT_SECRET || '';
-    this.refreshToken = process.env.REFRESH_TOKEN || '';
-    this.accessToken = '';
+  constructor(storer: IStorer) {
+    this.clientId = process.env.CLIENT_ID!;
+    this.clientSecret = process.env.CLIENT_SECRET!;
+    this.refreshToken = process.env.REFRESH_TOKEN!;
+    this.memoryStorage = storer;
   }
 
   public async getAccessToken(): Promise<void> {
@@ -27,16 +30,29 @@ export class SpotifyCaller {
 
     const response: Response = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers, body: params });
 
-    const data = await response.json();
-    this.accessToken = data.access_token;
+    const data = (await response.json()) as SpotifyAccessToken;
+    const accessToken = { value: data.access_token, expiresAt: data.expires_in };
+    this.memoryStorage.set(ACCESS_TOKEN, accessToken.value, accessToken.expiresAt - 1000); // give it some grace for getting a new one
   }
 
   public async getCurrentlyPlaying(): Promise<TrackItemResponse> {
-    const response: Response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+    let accessToken = this.memoryStorage.get<SpotifyAccessToken>(ACCESS_TOKEN);
+
+    let response: Response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
+
+    if (response.status === 401) {
+      await this.getAccessToken();
+      accessToken = this.memoryStorage.get<SpotifyAccessToken>(ACCESS_TOKEN);
+      response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    }
 
     const data = await response.json();
 
@@ -51,8 +67,10 @@ export class SpotifyCaller {
   }
 
   private async getRecentlyPlayed(): Promise<TrackItemResponse> {
+    const accessToken = this.memoryStorage.get(ACCESS_TOKEN);
+
     const headers = {
-      Authorization: `Bearer ${this.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
