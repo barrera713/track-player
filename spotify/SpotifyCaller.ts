@@ -1,8 +1,4 @@
-export interface SpotifyAccessToken {
-  accessToken: string;
-  scope: string;
-  expiresIn: number;
-}
+import type { ArtistInfo, TrackItemResponse } from './interfaces';
 
 export class SpotifyCaller {
   private clientId: string;
@@ -35,7 +31,7 @@ export class SpotifyCaller {
     this.accessToken = data.access_token;
   }
 
-  public async getCurrentTune(): Promise<Response> {
+  public async getCurrentlyPlaying(): Promise<TrackItemResponse> {
     const response: Response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -43,6 +39,29 @@ export class SpotifyCaller {
     });
 
     const data = await response.json();
-    return data;
+
+    if (data === null) {
+      return this.getRecentlyPlayed();
+    }
+
+    const trackName = data.item.name;
+    const trackArtists = data.item.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
+    const currentlyPlaying = { trackName, trackArtists };
+    return currentlyPlaying;
+  }
+
+  private async getRecentlyPlayed(): Promise<TrackItemResponse> {
+    const headers = {
+      Authorization: `Bearer ${this.accessToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    const response: Response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', { method: 'GET', headers });
+
+    const data = await response.json();
+    const trackName = data.items[0].track.name;
+    const trackArtists = data.items[0].track.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
+    const lastTrackPlayed = { trackName, trackArtists };
+    return lastTrackPlayed;
   }
 }

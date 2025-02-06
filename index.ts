@@ -12,7 +12,7 @@ const server = Bun.serve({
   port: 3000,
   async fetch() {
     await spotifyCaller.getAccessToken();
-    const response = await spotifyCaller.getCurrentTune();
+    const response = await spotifyCaller.getCurrentlyPlaying();
     return new Response(JSON.stringify({ data: response }));
   },
 });
