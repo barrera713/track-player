@@ -2,6 +2,8 @@ import type { IStorer } from '../storage/interfaces';
 import type { ArtistInfo, SpotifyAccessToken, TrackItemResponse } from './interfaces';
 
 const ACCESS_TOKEN = 'spotify-access-token';
+const CURRENT_TRACK_PLAYING = 'current-track';
+const LAST_PLAYED_TRACK = 'last-played-track';
 
 export class SpotifyCaller {
   private clientId: string;
@@ -31,11 +33,13 @@ export class SpotifyCaller {
     const response: Response = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers, body: params });
 
     const data = (await response.json()) as SpotifyAccessToken;
-    const accessToken = { value: data.access_token, expiresAt: data.expires_in };
-    this.memoryStorage.set(ACCESS_TOKEN, accessToken.value, accessToken.expiresAt - 1000); // give it some grace for getting a new one
+    this.memoryStorage.set(ACCESS_TOKEN, data.access_token, data.expires_in - 1000); // give it some grace for getting a new one
   }
 
-  public async getCurrentlyPlaying(): Promise<TrackItemResponse> {
+  public async getCurrentlyPlayingOrLastPlayed(): Promise<TrackItemResponse> {
+    const currenttlyPlayingFromCache = this.memoryStorage.get<TrackItemResponse>(CURRENT_TRACK_PLAYING);
+    if (currenttlyPlayingFromCache) return currenttlyPlayingFromCache;
+
     let accessToken = this.memoryStorage.get<SpotifyAccessToken>(ACCESS_TOKEN);
 
     let response: Response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -56,17 +60,23 @@ export class SpotifyCaller {
 
     const data = await response.json();
 
-    if (data === null) {
-      return this.getRecentlyPlayed();
+    if (!data.is_playing) {
+      return this.getLastPlayed();
     }
 
     const trackName = data.item.name;
     const trackArtists = data.item.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
+    const trackDuration = data.item.duration_ms;
     const currentlyPlaying = { trackName, trackArtists };
+    this.memoryStorage.set(CURRENT_TRACK_PLAYING, currentlyPlaying, trackDuration);
+
     return currentlyPlaying;
   }
 
-  private async getRecentlyPlayed(): Promise<TrackItemResponse> {
+  private async getLastPlayed(): Promise<TrackItemResponse> {
+    const lastPlayedFromCache = this.memoryStorage.get<TrackItemResponse>(LAST_PLAYED_TRACK);
+    if (lastPlayedFromCache) return lastPlayedFromCache;
+
     const accessToken = this.memoryStorage.get(ACCESS_TOKEN);
 
     const headers = {
@@ -80,6 +90,8 @@ export class SpotifyCaller {
     const trackName = data.items[0].track.name;
     const trackArtists = data.items[0].track.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
     const lastTrackPlayed = { trackName, trackArtists };
+    this.memoryStorage.set(CURRENT_TRACK_PLAYING, lastTrackPlayed, 3500);
+
     return lastTrackPlayed;
   }
 }
