@@ -60,7 +60,7 @@ export class SpotifyCaller {
 
     const data = await response.json();
 
-    if (!data.is_playing) {
+    if (!data) {
       return this.getLastPlayed();
     }
 
