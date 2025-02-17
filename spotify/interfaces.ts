@@ -15,6 +15,7 @@ export interface ArtistInfo {
 }
 
 export interface TrackItemResponse {
+  message: string;
   trackName: string;
   trackArtists: string;
 }

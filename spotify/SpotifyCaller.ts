@@ -67,7 +67,7 @@ export class SpotifyCaller {
     const trackName = data.item.name;
     const trackArtists = data.item.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
     const trackDuration = data.item.duration_ms;
-    const currentlyPlaying = { trackName, trackArtists };
+    const currentlyPlaying = { message: 'Currently playing:', trackName, trackArtists };
     this.memoryStorage.set(CURRENT_TRACK_PLAYING, currentlyPlaying, trackDuration);
 
     return currentlyPlaying;
@@ -89,7 +89,7 @@ export class SpotifyCaller {
     const data = await response.json();
     const trackName = data.items[0].track.name;
     const trackArtists = data.items[0].track.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
-    const lastTrackPlayed = { trackName, trackArtists };
+    const lastTrackPlayed = { message: 'Last played', trackName, trackArtists };
     this.memoryStorage.set(CURRENT_TRACK_PLAYING, lastTrackPlayed, 3500);
 
     return lastTrackPlayed;
