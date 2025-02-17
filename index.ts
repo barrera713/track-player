@@ -13,10 +13,15 @@ const spotifyCaller = new SpotifyCaller(memoryCache);
 
 const server = Bun.serve({
   port: 3000,
-  async fetch() {
-    await spotifyCaller.getAccessToken();
-    const response = await spotifyCaller.getCurrentlyPlayingOrLastPlayed();
-    return new Response(JSON.stringify({ data: response }));
+  async fetch(req: Request) {
+    const path = new URL(req.url).pathname;
+    if (path === '/spotify') {
+      await spotifyCaller.getAccessToken();
+      const response = await spotifyCaller.getCurrentlyPlayingOrLastPlayed();
+      return new Response(JSON.stringify({ data: response }), { status: 200 });
+    }
+
+    return new Response(JSON.stringify({ data: 'Request unavailable' }), { status: 404 });
   },
 });
 
