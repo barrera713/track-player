@@ -67,7 +67,7 @@ export class SpotifyCaller {
     const trackName = data.item.name;
     const trackArtists = data.item.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
     const trackDuration = data.item.duration_ms;
-    const currentlyPlaying = { message: 'Currently playing:', trackName, trackArtists };
+    const currentlyPlaying = { message: 'Currently listening to:', trackName, trackArtists };
     this.memoryStorage.set(CURRENT_TRACK_PLAYING, currentlyPlaying, trackDuration);
 
     return currentlyPlaying;
