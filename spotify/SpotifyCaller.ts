@@ -1,5 +1,5 @@
 import type { IStorer } from '../storage/interfaces';
-import type { ArtistInfo, SpotifyAccessToken, TrackItemResponse } from './interfaces';
+import type { ArtistInfo, SpotifyAccessToken } from './interfaces';
 
 const ACCESS_TOKEN = 'spotify-access-token';
 const CURRENT_TRACK_PLAYING = 'current-track';
@@ -36,8 +36,8 @@ export class SpotifyCaller {
     this.memoryStorage.set(ACCESS_TOKEN, data.access_token, data.expires_in - 1000); // give it some grace for getting a new one
   }
 
-  public async getCurrentlyPlayingOrLastPlayed(): Promise<TrackItemResponse> {
-    const currenttlyPlayingFromCache = this.memoryStorage.get<TrackItemResponse>(CURRENT_TRACK_PLAYING);
+  public async getCurrentlyPlayingOrLastPlayed(): Promise<string> {
+    const currenttlyPlayingFromCache = this.memoryStorage.get<string>(CURRENT_TRACK_PLAYING);
     if (currenttlyPlayingFromCache) return currenttlyPlayingFromCache;
 
     let accessToken = this.memoryStorage.get<SpotifyAccessToken>(ACCESS_TOKEN);
@@ -67,14 +67,14 @@ export class SpotifyCaller {
     const trackName = data.item.name;
     const trackArtists = data.item.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
     const trackDuration = data.item.duration_ms;
-    const currentlyPlaying = { message: 'Currently listening to:', trackName, trackArtists };
+    const currentlyPlaying = `Currently enjoying: ${trackName} ${trackArtists}`;
     this.memoryStorage.set(CURRENT_TRACK_PLAYING, currentlyPlaying, trackDuration);
 
     return currentlyPlaying;
   }
 
-  private async getLastPlayed(): Promise<TrackItemResponse> {
-    const lastPlayedFromCache = this.memoryStorage.get<TrackItemResponse>(LAST_PLAYED_TRACK);
+  private async getLastPlayed(): Promise<string> {
+    const lastPlayedFromCache = this.memoryStorage.get<string>(LAST_PLAYED_TRACK);
     if (lastPlayedFromCache) return lastPlayedFromCache;
 
     const accessToken = this.memoryStorage.get(ACCESS_TOKEN);
@@ -89,7 +89,7 @@ export class SpotifyCaller {
     const data = await response.json();
     const trackName = data.items[0].track.name;
     const trackArtists = data.items[0].track.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
-    const lastTrackPlayed = { message: 'Last played:', trackName, trackArtists };
+    const lastTrackPlayed = `Last played: ${trackName} ${trackArtists}`;
     this.memoryStorage.set(CURRENT_TRACK_PLAYING, lastTrackPlayed, 3500);
 
     return lastTrackPlayed;
