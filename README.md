@@ -1,4 +1,4 @@
 # track-player
 
 ### What it does? 🤔
-Taking Bun.js for a test drive to get current track playing on Spotify || last played track 😎
+Gets the current Spotify track playing, if there isn't a current song then it returns the last played track. Powered by Bun.js and Spotify 😎.
