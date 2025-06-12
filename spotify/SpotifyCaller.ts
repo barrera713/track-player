@@ -37,8 +37,8 @@ export class SpotifyCaller {
   }
 
   public async getCurrentlyPlayingOrLastPlayed(): Promise<string> {
-    const currenttlyPlayingFromCache = this.memoryStorage.get<string>(CURRENT_TRACK_PLAYING);
-    if (currenttlyPlayingFromCache) return currenttlyPlayingFromCache;
+    const currentlyPlayingFromCache = this.memoryStorage.get<string>(CURRENT_TRACK_PLAYING); 
+    if (currentlyPlayingFromCache) return currentlyPlayingFromCache;
 
     let accessToken = this.memoryStorage.get<SpotifyAccessToken>(ACCESS_TOKEN);
 
