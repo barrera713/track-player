@@ -90,7 +90,7 @@ export class SpotifyCaller {
     const trackName = data.items[0].track.name;
     const trackArtists = data.items[0].track.artists.map((artistInfo: ArtistInfo) => artistInfo.name).join(', ');
     const lastTrackPlayed = `Last played: ${trackName} ${trackArtists}`;
-    this.memoryStorage.set(CURRENT_TRACK_PLAYING, lastTrackPlayed, 3500);
+    this.memoryStorage.set(CURRENT_TRACK_PLAYING, lastTrackPlayed, 1000);
 
     return lastTrackPlayed;
   }
